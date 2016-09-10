@@ -7,8 +7,8 @@
 
 You can use capistrano for deployment.
 
-Example deploy.rb
 
+`config/deploy.rb`
 ```ruby
 set :application, 'changeme'
 set :repo_url, 'YOUR_GIT_URL'
