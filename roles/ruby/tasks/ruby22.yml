@@ -1,0 +1,48 @@
+---
+# Ruby from ubuntu package http://brightbox.com/blog/2014/01/09/ruby-2-1-ubuntu-packages/
+- name: Add Ruby
+  apt_repository: repo='ppa:brightbox/ruby-ng'
+
+- name: upgrade
+  action: apt update_cache=yes
+
+- name: install ruby dependencies
+  action: apt pkg={{item}} state=installed
+  with_items:
+    - build-essential
+    - automake
+    - bison
+    - autoconf
+    - pkg-config
+    - libreadline6
+    - libreadline6-dev
+    - openssl
+    - libssl-dev
+    - curl
+    - git-core
+    - zlib1g
+    - zlib1g-dev
+    - libyaml-dev
+    - libsqlite3-dev
+    - libxml2-dev
+    - libxslt1-dev
+    - curl
+
+- name: Install app dependencies 
+  action: apt pkg={{item}} state=installed
+  with_items:
+    - libpq-dev
+    - nodejs
+    - imagemagick
+
+- name: Install Ruby 2.2
+  apt: pkg=ruby2.2 state=latest update_cache=true
+
+- name: Install Ruby 2.2 dev
+  apt: pkg=ruby2.2-dev state=latest update_cache=true
+
+- name: Install Bundler
+  command: gem install bundler
+
+- name: Install Postgre Gem
+  command: gem install pg

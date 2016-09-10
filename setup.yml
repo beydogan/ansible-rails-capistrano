@@ -1,0 +1,8 @@
+---
+- hosts: all
+  sudo: yes
+  vars_files:
+    - vars/config.yml
+  remote_user: "{{sysadmin.username}}"
+  roles:
+    - postgres

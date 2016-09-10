@@ -1,0 +1,52 @@
+---
+- stat: path=/.bootstrap
+  register: bootstraped
+
+- name: Copy sudoers file for safety
+  command: cp -f /etc/sudoers /etc/sudoers.tmp
+
+- name: Create sudoers file backup
+  command: cp -f /etc/sudoers /etc/sudoers.bak
+
+- name: Create {{sysadmin.group}} group
+  group: name={{sysadmin.group}} system=yes state=present
+
+- name: make sure we can sudo as {{sysadmin.group}} group
+  lineinfile: "dest=/etc/sudoers.tmp state=present regexp='^%{{sysadmin.group}}' line='%{{sysadmin.group}} ALL=(ALL) NOPASSWD: ALL'"
+
+- name: also make sure ssh-agent works via sudo
+  lineinfile: dest=/etc/sudoers.tmp state=present regexp='^Defaults env_keep\+\=SSH_AUTH_SOCK' line='Defaults env_keep+=SSH_AUTH_SOCK'
+
+- name: Final sudoers file check
+  shell: visudo -q -c -f /etc/sudoers.tmp && cp -f /etc/sudoers.tmp /etc/sudoers
+
+- name: Create sysadmin user
+  user: name={{sysadmin.username}} groups={{sysadmin.group}} comment="Sys admin user"
+
+- name: Add sysadmin user public key
+  authorized_key: user={{sysadmin.username}} key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+- name: Add root user public key
+  authorized_key: user=root key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+- name: Apt Update
+  apt: update_cache=yes
+  when: not bootstraped.stat.exists #skip to save time
+
+- name: create bootstrap file
+  file: path=/.bootstrap state=touch owner=root group=root mode=0555 #create a file to decide is already bootstraped
+
+- name: Restart
+  command: reboot
+  async: 0
+  poll: 0
+  ignore_errors: true
+  when: not bootstraped.stat.exists  #skip to save time
+
+- name: waiting for server to come back
+  local_action: wait_for host={{ inventory_hostname }}
+                state=started
+                delay=15
+                timeout=20
+  sudo: false
+  when: not bootstraped.stat.exists  #skip to save time

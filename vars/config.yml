@@ -1,0 +1,15 @@
+---
+deploy_user: deploy
+webserver_name: changeme.com
+deploy_directory: /data/changeme
+app_name: changeme
+postgres:
+  username: changeme
+  password: "ULTRASECUREPASSWORD"
+app_dependencies:
+  - libpq-dev
+  - nodejs
+  - imagemagick
+sysadmin:
+  username: changeme
+  group: wheel
